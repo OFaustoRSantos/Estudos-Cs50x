@@ -1,6 +1,6 @@
 // https://cs50.harvard.edu/x/psets/3/sort/
 
-// Não é uma tarefa prático, outro dia farei um sistema com cada um dos sorts
+// Não é uma tarefa prático, apenas descobrir tipo de sort pelo tempo operacional
 
 #include <ctype.h>
 #include <cs50.h>

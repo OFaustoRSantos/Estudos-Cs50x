@@ -31,10 +31,10 @@ int main(void){
             final_number = 0;
         } else if (isalpha(s[i]) != 0 || s[i]){
             printf("A lista não pode incluir letras ou sinais diferentes de ,");
-            return 0;
+            return 1;
         } else if (s[i] == ' ' || s[i] > 10){
             printf("A lista só pode conter números e virgula");
-            return 0;
+            return 1;
         }
     }
 
