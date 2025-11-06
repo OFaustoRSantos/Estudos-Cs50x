@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/Escola/Documents/Fausto/Programação/Cs50x/Cs50x/Week_3",
-      "program": "c:/Users/Escola/Documents/Fausto/Programação/Cs50x/Cs50x/Week_3/build/Debug/outDebug",
+      "cwd": "c:/Users/Escola/Documents/Fausto/Programação/Cs50x/Cs50x/Week_3/problemset",
+      "program": "c:/Users/Escola/Documents/Fausto/Programação/Cs50x/Cs50x/Week_3/problemset/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
