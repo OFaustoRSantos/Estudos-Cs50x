@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
+// Não testado ainda.
+
 #include "helpers.h"
 
 int main(int argc, char *argv[])
