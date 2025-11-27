@@ -77,6 +77,9 @@ void edges(int height, int width, RGBTRIPLE image[height][width])
             int Gy_sumBlue = 0;
             int Gy_sumGreen = 0;
             int Gy_sumRed = 0;
+            int Gx_sumBlue = 0;
+            int Gx_sumGreen = 0;
+            int Gx_sumRed = 0;
             for(int x = -1; x<1; x++){
                 for(int y=-1; y<2; y++){
                     Gx_sumBlue += (image[i+x][j+y].rgbtBlue) * Gx[i+x][j+y];
