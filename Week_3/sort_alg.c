@@ -119,7 +119,25 @@ void bubblesort(int[]){
     
 }
 void selectionsort(int[]){
+    // Peguei do tideman, versão 1 do código de selection lá
+    /*
+    for(int i=0; i < pair_count - 1; i++ ){
+        int p_max_value = i; //posição do valor máximo
+        for(int j = i + 1; j < pair_count; j++){ // ponteiro 2
+            //Achando posição máxima
+            if(pairs[j].v_prefer > pairs[p_max_value].v_prefer)
+            {
+                p_max_value = j; // Atualiza o índice do máximo
+            }
 
+        }
+        // Trocando um com outro
+        pair tmp = pairs[i];
+        pairs[i] = pairs[p_max_value];
+        pairs[p_max_value] = tmp;
+    }
+    */
+    
 }
 void quicksort(int[]){
 

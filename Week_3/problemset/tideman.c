@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
-// Incompleto
+// Enviado com erro no sort, qual? Nem eu sei kkkk, ta funcionando mais o checker do cs50x nn ta reconhecendo.
 
 // Max number of candidates
 #define MAX 9
@@ -35,6 +35,7 @@ bool vote(int rank, string name, int ranks[]);
 void record_preferences(int ranks[]);
 void add_pairs(void);
 void sort_pairs(void);
+bool creates_cycle(int start, int end);
 void lock_pairs(void);
 void print_winner(void);
 
@@ -60,13 +61,14 @@ int main(int argc, string argv[])
         candidates[i] = argv[i + 1];
     }
 
-    // Clear graph of locked in pairs, fugindo de garbage values
+    // Clear graph of locked in pairs e o preferences tbm, fugindo de garbage values
 
     for (int i = 0; i < candidate_count; i++)
     {
         for (int j = 0; j < candidate_count; j++)
         {
             locked[i][j] = false;
+            preferences[i][j] = 0;
         }
     }
 
@@ -108,7 +110,7 @@ bool vote(int rank, string name, int ranks[])
 {
     // TODO
     for(int i = 0; i<candidate_count; i++){
-        if(strcmp(name,candidate[i])){
+        if(strcmp(name,candidates[i]) == 0){
             ranks[rank] = i;
             return true;
             // Simplesmente anotando as preferencias
@@ -120,12 +122,13 @@ bool vote(int rank, string name, int ranks[])
 // Update preferences given one voter's ranks
 void record_preferences(int ranks[])
 {
+    
     // TODO
     for(int i =0; i<candidate_count; i++){
-        int x = rank[i];
+        int x = ranks[i];
         for(int j = 1; j + i < candidate_count; j++){
-            int y = rank[j+i];
-            preference[x][y]++;
+            int y = ranks[j+i];
+            preferences[x][y]++;
         }
     }
     return;
@@ -134,14 +137,40 @@ void record_preferences(int ranks[])
 // Record pairs of candidates where one is preferred over the other
 void add_pairs(void)
 {
-    for(int i; i < candidate_count; i++){
-        for(int j; j <candidate_count; j++){
-            if(preference[i][j] > preference[j][i]){
+    /* - Tem um erro aqui! Estraga o pair_count por isso estraga o sistema!
+    for(int i = 0; i < candidate_count; i++){
+        for(int j = 0; j <candidate_count; j++){
+            if(preferences[i][j] > preferences[j][i]){
                 pairs[pair_count].winner = i;
                 pairs[pair_count].loser = j;
-                v_prefer = preference[i][j];
+                pairs[pair_count].v_prefer = preferences[i][j] - preferences[j][i];
                 pair_count++;
             }
+        }
+    }
+    */
+    pair_count = 0;
+
+    for (int i = 0; i < candidate_count; i++)
+    {
+        for (int j = i + 1; j < candidate_count; j++)
+        {
+            if (preferences[i][j] > preferences[j][i])
+            {
+                pairs[pair_count].winner = i;
+                pairs[pair_count].loser = j;
+                // força = margem: favoritos sobre o outro menos o contrário - MTO CONFUSO!
+                pairs[pair_count].v_prefer = preferences[i][j] - preferences[j][i];
+                pair_count++;
+            }
+            else if (preferences[j][i] > preferences[i][j])
+            {
+                pairs[pair_count].winner = j;
+                pairs[pair_count].loser = i;
+                pairs[pair_count].v_prefer = preferences[j][i] - preferences[i][j];
+                pair_count++;
+            }
+            // se empatar fazer nada
         }
     }
     return;
@@ -151,25 +180,90 @@ void add_pairs(void)
 void sort_pairs(void)
 {
     // TODO
-    // ponteiro 1
-    for(int i=0; i < pair_count; i++ ){
-        int p_max_value = 0; //posição do valor máximo
-        for(int j; j + i < pair_count; j++){ // ponteiro 2
-
-            if(pairs(i).v_prefer < pairs(j).v_prefer ){
-                p_max_value
+    // 2° teste com bubble sort => TAMBÉM nn funcionou kkkk
+     for (int i = 0; i < pair_count - 1; i++)
+    {
+        // O loop interno faz as trocas
+        for (int j = 0; j < pair_count - 1 - i; j++)
+        {
+            // Se o par atual (j) tiver margem MENOR que o próximo (j+1),
+            // eles estão fora de ordem decrescente, e devem ser trocados.
+            if (pairs[j].v_prefer < pairs[j + 1].v_prefer)
+            {
+                // Troca
+                pair temp = pairs[j];
+                pairs[j] = pairs[j + 1];
+                pairs[j + 1] = temp;
             }
         }
-        int tmp = preferences[pairs[i].winner][pairs[i].loser]
+    }
+    
+    // Usando Selection Sort nn deu certo, não sei por que, versão original (1° que fiz, foi com SSORT) A de cima foi com bubble sort
+    /*
+    // ponteiro 1
+    for(int i=0; i < pair_count - 1; i++ ){
+        int p_max_value = i; //posição do valor máximo
+        for(int j = i + 1; j < pair_count; j++){ // ponteiro 2
+            //Achando posição máxima
+            if(pairs[j].v_prefer > pairs[p_max_value].v_prefer)
+            {
+                p_max_value = j; // Atualiza o índice do máximo
+            }
 
+        }
+        // Trocando um com outro
+        pair tmp = pairs[i];
+        pairs[i] = pairs[p_max_value];
+        pairs[p_max_value] = tmp;
     }
     return;
+    */
+}
+
+// Verificar se adicionar edge não cria ciclo -> Força Bruta
+bool creates_cycle(int start, int end)
+{
+    // Caso base: Se o caminho atual retornar ao ponto de início do ciclo
+    if (start == end)
+    {
+        return true;
+    }
+
+    // Caso recursivo: Tenta mover-se para os vizinhos
+    for (int i = 0; i < candidate_count; i++)
+    {
+        // Se houver uma aresta bloqueada de 'start' para 'i' (start -> i)
+        if (locked[start][i])
+        {
+            // Verifica recursivamente se há um caminho de 'i' para 'end'
+            if (creates_cycle(i, end))
+            {
+                return true;
+            }
+        }
+    }
+
+    // Não foi encontrado um ciclo - AMEM
+    return false;
 }
 
 // Lock pairs into the candidate graph in order, without creating cycles
 void lock_pairs(void)
 {
+
     // TODO
+    for (int i = 0; i < pair_count; i++)
+    {
+        int winner = pairs[i].winner;
+        int loser = pairs[i].loser;
+
+        // Se adicionar a aresta (winner -> loser) NÃO criar um ciclo!
+        if (!creates_cycle(loser, winner))
+        {
+            locked[winner][loser] = true;
+        }
+    }
+
     return;
 }
 
@@ -177,5 +271,21 @@ void lock_pairs(void)
 void print_winner(void)
 {
     // TODO
+
+
+    for(int i = 0; i < candidate_count; i++){
+        bool vitoria = true;
+        // se candidato não tiver seta apontando para ele;
+        for(int j = 0; j < candidate_count; j++){
+            if(locked[j][i] == true){
+                vitoria = false;
+                break;
+            }
+        }
+        if(vitoria){
+            printf("%s\n", candidates[i]);
+        }
+
+    }
     return;
 }

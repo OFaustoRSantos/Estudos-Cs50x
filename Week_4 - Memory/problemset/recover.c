@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 int main(int argc, char *argv[])
 {
@@ -15,30 +16,49 @@ int main(int argc, char *argv[])
 
     // Create a buffer for a block of data
     uint8_t buffer[512];
-    int arquivo_aberto = 0; //verificar se tem algum arquivo em aberto
-    
+    int contador = 0;
+    char filename[8];
+    FILE *img = NULL;
+
     // While there's still data left to read from the memory card
     while (fread(buffer, 1, 512, card) == 512)
     {
         // Create JPEGs from the data
-        if ( buffer[0] == 0xff && buffer[1] == 0xd8 && buffer[2] == 0xff && (buffer[3] & Oxf0) == Oxe0){
-            arquivo_aberto += 1;
+        if (buffer[0] == 0xff && buffer[1] == 0xd8 && buffer[2] == 0xff && (buffer[3] & 0xf0) == 0xe0){
             // Fechar arquivo antigo
-            if(arquivo_aberto > 0){
-                fclose(filename);
+            if(img != NULL){
+                fclose(img);
             }
             // Abrir novo arquivo
-            sprintf(filename, "%03i.jpg", arquivo_aberto);
-            FILE *img = fopen(filename, "w");
+            sprintf(filename, "%03i.jpg", contador); // Essa função é bem interessante
+            img = fopen(filename, "w");
+
+            if (img == NULL)
+            {
+                // Caso não consiga abrir o arquivo de saída
+                fclose(card);
+                printf("Não foi possível criar o arquivo de imagem.\n");
+                return 1;
+            }
+            contador++;
         }
-        // 
+
         // Escrever no novo arquivo
-        if(arquivo_aberto != 0){
+        if(img != NULL){
             fwrite(buffer, 1, 512, img);
         }
 
-    }
-    
 
-    
+    }
+    // Final do arquivo
+    if (img != NULL)
+    {
+        fclose(img);
+    }
+
+    fclose(card);
+
+    return 0;
+
+
 }
