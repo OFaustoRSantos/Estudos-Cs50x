@@ -2,6 +2,7 @@
 
 #include <ctype.h>
 #include <stdio.h>
+#include <cs50.h>
 #include <sys/resource.h>
 #include <sys/time.h>
 
@@ -65,12 +66,18 @@ int main(int argc, char *argv[])
 
     // Prepare to spell-check
     int index = 0, misspellings = 0, words = 0;
+    int ultimo_erro = 0;
+    string s[50];
+    int alread = 0;
+    bool misspelled = false;
     char word[LENGTH + 1];
 
     // Spell-check each word in text
     char c;
     while (fread(&c, sizeof(char), 1, file))
     {
+        misspelled = false;
+        alread = 0;
         // Allow only alphabetical characters and apostrophes
         if (isalpha(c) || (c == '\'' && index > 0))
         {
@@ -110,7 +117,20 @@ int main(int argc, char *argv[])
 
             // Check word's spelling
             getrusage(RUSAGE_SELF, &before);
-            bool misspelled = !check(word);
+            for(int i = 0; i < 50; i++){
+                if(word == s[i]){
+                    alread = 1;
+                }
+            }
+            if(alread != 1){
+                misspelled = !check(word);
+                s[ultimo_erro] = word;
+                ultimo_erro++;
+            }
+            else{
+                misspellings++;
+            }
+                
             getrusage(RUSAGE_SELF, &after);
 
             // Update benchmark
