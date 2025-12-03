@@ -10,14 +10,16 @@
 
 #include "dictionary.h"
 
-int size_dict = 0;
-bool locked_in[28][28][28][28][28][28][28][2];
+// it may be called in size();
+unsigned int count_words = 0;
+
+// Prototypes
+unsigned int size(void);
+
 // Represents a node in a hash table
 typedef struct node
 {
-    int cara1;
-    int cara2;
-    string resto_word;
+    char word[LENGTH + 1];
     struct node *next;
 } node;
 
@@ -25,29 +27,7 @@ typedef struct node
 node *list = NULL;
 
 // TODO: Choose number of buckets in hash table
-const unsigned int N = 26;
-
-bool checker(const char *word, const int size_word){
-    // Cheker amplo (Palavras 7+)
-    const char *novo_texto = word + 7;
-    node *ptr = list; // novo ponteiro
-    while (ptr != NULL)
-    {
-        if(ptr->cara1 > word[0]){
-            return false;
-            break;
-        }
-        if(ptr->cara1 == word[0] && ptr->cara2 == word[1]){
-            if(strcmp(ptr->resto_word, novo_texto) == 0)
-            {
-                return true;
-            }
-        }
-        node *next = ptr->next;
-        ptr = next;
-    }
-    return false;
-}
+const unsigned int N = 20000;
 
 // Hash table
 node *table[N];
@@ -56,45 +36,27 @@ node *table[N];
 bool check(const char *word)
 {
     // TODO
-    int s_w = strlen(word);
-    int chara[7];
-    chara[0] = 27;chara[1] = 27;chara[2] = 27;chara[3] = 27;chara[4] = 27;chara[5] = 27;chara[6] = 27;
-    
-    // tirar casos comuns - a, the, and, or, of.
-    if(strcmp(word, "a") == 0 || strcmp(word, "the") == 0 || strcmp(word, "of") == 0 || strcmp(word, "or") == 0 || strcmp(word, "and") == 0){
-        return true;
-    } if(s_w < 7) {
-        for(int i = 0; i<s_w; i++){
-            if(isalpha(word[i]) == 0){
-                chara[i] = toupper(word[i]) - 'A';
-            } else if(word[i] == 39){
-                chara[i] = 26;
-            } else{
-                return false;
-            }
+    // traverse the linked list searching for a matching word
+    // word index position
+    int word_index = hash(word);
+
+    // initialize cursor to first node in the linked list
+    // note cursor->word is current word
+    // note cursor->next is a pointer to the next node address
+    node *cursor = table[word_index];
+
+    // while loop to iterate until NULL
+    // NULL is the one with no pointer
+    while (cursor != NULL)
+    {
+        if (strcasecmp(word, cursor->word) == 0)
+        {
+            return true; // word is found
         }
-        if(locked_in[chara[0]][chara[1]][chara[2]][chara[3]][chara[4]][chara[5]][chara[6]][0] == true){
-            return true;
-        }
+        // set the cursor to the next node in the linked list
+        cursor = cursor->next;
     }
-    // Checker especial para palavras maiores
-    else{
-        for(int i = 0; i<s_w; i++){
-            if(isalpha(word[i]) == 0){
-                chara[i] = toupper(word[i]) - 'A';
-            } else if(word[i] == 39){
-                chara[i] = 26;
-            } else{
-                return false;
-            }
-        }
-        if(locked_in[chara[0]][chara[1]][chara[2]][chara[3]][chara[4]][chara[5]][chara[6]][1] == true){
-            checker(word, s_w);
-        } else{
-            return false;
-        }
-        
-    }
+
     return false;
 }
 
@@ -102,102 +64,128 @@ bool check(const char *word)
 unsigned int hash(const char *word)
 {
     // TODO: Improve this hash function
+    // consider a function on each character in a word to insurace uniqueness however will output fit in N-1?
+    // to fit N do module % N
+    // output is the address in the linked list
+    // return toupper(word[0]) - 'A';
 
-    return toupper(word[0]) - 'A';
+    // new hash function
+    // loop over each character in the string
+    // square the uppe case ASCII number, sum each squared ASCII number and mod N
+    // mid word perform another function
+    unsigned int roll_sum = 0;
+    unsigned int squared = 0;
+    for (int i = 0; i < strlen(word); i++)
+    {
+        squared = pow(toupper(word[i]), 2);
+        if (i == round(strlen(word) / 2))
+        {
+            roll_sum = roll_sum + round(sqrt(roll_sum)) + 17;
+        }
+        roll_sum = squared + roll_sum + 47;
+    }
+    return roll_sum % N;
 }
 
 // Loads dictionary into memory, returning true if successful, else false
 bool load(const char *dictionary)
 {
     // TODO
-    int chara[7];
-    int s_w = 0;
-    char str_max[38];
-    char r_chara[40];
-    
-    FILE *arquivo = fopen(dictionary, "r");
-    if(arquivo == NULL){
+    // add a method to sum the words as loading into dictionary
+    // Open the dictionary file
+    FILE *dict_open = fopen(dictionary, "r"); // pointer to the memory address of the input file
+    //printf("pointer to memory address of the memory card %p \n", input_memory_card);
+    if (dict_open == NULL)
+    {
+        printf("Could not open the dictionary file.\n");
         return false;
     }
-    char caractere;
-    while ((caractere = fgetc(arquivo)) != EOF) {
-        // Se o caractere lido for uma quebra de linha ('\n'), incrementa o contador do dict
-        if (caractere == '\n') {
-            if(s_w < 8){
-                locked_in[chara[0]][chara[1]][chara[2]][chara[3]][chara[4]][chara[5]][chara[6]][0] = true;
-                s_w = 0;
-                chara[0] = 27;chara[1] = 27;chara[2] = 27;chara[3] = 27;chara[4] = 27;chara[5] = 27;chara[6] = 27;
-                size_dict++;
-            }else if (s_w > 8){
-                locked_in[chara[0]][chara[1]][chara[2]][chara[3]][chara[4]][chara[5]][chara[6]][1] = true;
-                node *n = malloc(sizeof(node));
-                if (n == NULL)
-                {
-                    return false;
-                }
+    else if (dict_open != NULL)
+    {
+        char buffer[LENGTH + 1];
+        int hash_index = 0;
+        while (fscanf(dict_open, "%s", buffer) != EOF)
+        {
+            //printf("yee %s \n",buffer);
 
-                n->cara1 = chara[0];
-                n->cara2 = chara[1];
-                n->resto_word = malloc(s_w-7 + 1);
-                n->resto_word = strcpy(n->resto_word, r_chara);
-                
+            // Create a new node for the word the size of the node
+            // enough bytes for the word itselt and the address
+            node *n = malloc(sizeof(node));
+            // check that the memory initialized ok
+            if (n == NULL)
+            {
+                return false;
+                break;
+            }
+            else if (n != NULL)
+            {
+                // copy the word into the word portion of the node
+                strcpy(n->word, buffer);
+                // set address to NULL
                 n->next = NULL;
-                for (node *ptr = list; ptr != NULL; ptr = ptr->next)
+
+                // testing the hash function
+                //printf("testing hash function %i \n", hash(buffer));
+
+                // get the hash number
+                hash_index = hash(buffer);
+
+                // case 1 - the first entry
+                // if nothing is there equal the first entry to the new node
+                if (table[hash_index] == NULL)
                 {
-                    if (ptr->next == NULL)
-                    {
-                        // Append node
-                        ptr->next = n;
-                        break;
-                    }
+                    table[hash_index] = n;
                 }
-                s_w = 0;
-                chara[0] = 27;chara[1] = 27;chara[2] = 27;chara[3] = 27;chara[4] = 27;chara[5] = 27;chara[6] = 27;
-                r_chara[0] = '\0';
-                size_dict++;
-            } else{
+                // case 2 - an entry already exists
+                // inserts at the front of the linked list each time
+                else if (table[hash_index] != NULL)
+                {
+                    // set the new node address to the first element index position
+                    n->next = table[hash_index];
+                    // set the head of the linked list to the previously inserted node
+                    table[hash_index] = n;
+                }
 
+                // count words
+                count_words++;
             }
-        } else{
-            s_w++;
-        }
-
-        if(s_w < 8){
-            if(caractere != 39){
-                chara[s_w-1] = toupper(caractere) - 'A';
-            } else{
-                chara[s_w-1] = 26;
-            }
-            
-        } else if (s_w>8)
-        { 
-            r_chara[s_w-1] = caractere;
-            r_chara[s_w] = '\0';
-        }
-
+        } // end while loop
+        fclose(dict_open);
+        return true;
     }
-    fclose(arquivo);
-    return false;
+    else
+    {
+        return false;
+    }
 }
 
 // Returns number of words in dictionary if loaded, else 0 if not yet loaded
 unsigned int size(void)
 {
     // TODO
-    return size_dict;
+    return count_words;
 }
 
 // Unloads dictionary from memory, returning true if successful, else false
 bool unload(void)
 {
-    // TODO
-    // free
-    node *ptr = list; // novo ponteiro
-    while (ptr != NULL)
+    for (int i = 0; i < N; i++)
     {
-        node *next = ptr->next;
-        free(ptr);
-        ptr = next;
+        // set temp and cursor to first index position
+        node *temp = table[i];
+        node *cursor = table[i];
+        
+        // at each index position
+        // traverse the linked list at that index position and free - use temp/cursor
+        // while loop until NULL
+        // at that point next i will begin
+        while (temp != NULL)
+        {
+            // set cursor to next
+            cursor = cursor->next; // i+1
+            free(temp);
+            temp = cursor;
+        }
     }
     return true;
 }
